@@ -314,6 +314,8 @@ struct device_node *msdc_io_cfg_left_node;
 struct device_node *msdc_io_cfg_top_node;
 struct device_node *msdc_io_cfg_bottom_node;
 struct device_node *msdc_io_cfg_right_node;
+struct device_node *msdc_eint_node;
+static unsigned int cd_irq;
 static unsigned int cd_gpio;
 
 struct device_node *msdc_apmixed_node = NULL;
@@ -1233,7 +1235,7 @@ bool msdc_hwPowerOn(unsigned int powerId, int powerVolt, char *mode_name)
 	/* New API voltage use micro V */
 	regulator_set_voltage(reg, powerVolt, powerVolt);
 	ret = regulator_enable(reg);
-	/* pr_err("msdc_hwPoweron:%d: name:%s ret(%d)", powerId, mode_name, ret); */
+	pr_err("msdc_hwPoweron:%d: name:%s ret(%d)", powerId, mode_name, ret);
 	if (ret)
 		return false;
 	else
@@ -1320,6 +1322,13 @@ static u32 msdc_ldo_power(u32 on, MT65XX_POWER powerId, int voltage_uv,
 #endif
 }
 #endif
+
+void msdc_sd_power_off(void)
+{
+	pr_err("SD overheat,pmic Eint disable SD power!\n");
+	msdc_ldo_power(0, POWER_LDO_VMC, VOL_3000, &g_msdc1_io);
+	msdc_ldo_power(0, POWER_LDO_VMCH, VOL_3000, &g_msdc1_flash);
+}
 
 void msdc_set_smt(struct msdc_host *host, int set_smt)
 {
@@ -1943,6 +1952,7 @@ static void msdc_reset_crc_tune_counter(struct msdc_host *host,	int index)
 
 static void msdc_set_bad_card_and_remove(struct msdc_host *host)
 {
+	int got_polarity = 0;
 	unsigned long flags;
 
 	if (host == NULL) {
@@ -1957,16 +1967,16 @@ static void msdc_set_bad_card_and_remove(struct msdc_host *host)
 	}
 	if (host->mmc->card) {
 		spin_lock_irqsave(&host->remove_bad_card, flags);
+		got_polarity = host->sd_cd_polarity;
 		host->block_bad_card = 1;
 
 		mmc_card_set_removed(host->mmc->card);
 		spin_unlock_irqrestore(&host->remove_bad_card, flags);
 
 		if (!(host->mmc->caps & MMC_CAP_NONREMOVABLE)
-			&& (host->hw->cd_level == __gpio_get_value(cd_gpio))) {
-			/* do nothing*/
-			/*tasklet_hi_schedule(&host->card_tasklet);*/
-		} else {
+			&& (got_polarity ^ host->hw->cd_level))
+			tasklet_hi_schedule(&host->card_tasklet);
+		else {
 			mmc_remove_card(host->mmc->card);
 			host->mmc->card = NULL;
 			mmc_detach_bus(host->mmc);
@@ -1977,28 +1987,6 @@ static void msdc_set_bad_card_and_remove(struct msdc_host *host)
 			host->block_bad_card, host->card_inserted);
 	}
 }
-
-void msdc_sd_power_off(void)
-{
-	struct msdc_host *host = mtk_msdc_host[1];
-
-	pr_err("Power Off, SD card\n");
-
-	/* power must be on */
-	g_msdc1_io = VOL_3000;
-	g_msdc1_flash = VOL_3000;
-
-	/* power off */
-	msdc_ldo_power(0, POWER_LDO_VMC, VOL_3000, &g_msdc1_io);
-	msdc_ldo_power(0, POWER_LDO_VMCH, VOL_3000, &g_msdc1_flash);
-
-	if (host && host->mmc) {
-		mmc_claim_host(host->mmc);
-		msdc_set_bad_card_and_remove(host);
-		mmc_release_host(host->mmc);
-	}
-}
-EXPORT_SYMBOL(msdc_sd_power_off);
 
 /* host doesn't need the clock on */
 void msdc_gate_clock(struct msdc_host *host, int delay)
@@ -2478,17 +2466,15 @@ static void msdc_set_mclk(struct msdc_host *host, unsigned char timing, u32 hz)
 	/* need because clk changed */
 	msdc_set_timeout(host, host->timeout_ns, host->timeout_clks);
 
-#if defined(MSDC0_EMMC50_SUPPORT)
 	if (mode == 0x3) {
 		msdc_set_smpl(host, 1, host->hw->cmd_edge, TYPE_CMD_RESP_EDGE, NULL);
 		msdc_set_smpl(host, 1, host->hw->rdata_edge, TYPE_READ_DATA_EDGE, NULL);
 		msdc_set_smpl(host, 1, host->hw->wdata_edge, TYPE_WRITE_CRC_EDGE, NULL);
-	} else
-#endif
-	{
+	} else {
 		msdc_set_smpl(host, 0, host->hw->cmd_edge, TYPE_CMD_RESP_EDGE, NULL);
 		msdc_set_smpl(host, 0, host->hw->rdata_edge, TYPE_READ_DATA_EDGE, NULL);
 		msdc_set_smpl(host, 0, host->hw->wdata_edge, TYPE_WRITE_CRC_EDGE, NULL);
+
 	}
 
 	pr_err("msdc%d Set<%dK> src:<%dK> sclk:<%dK> timing<%d> mode:%d div:%d\n",
@@ -6892,14 +6878,7 @@ static void msdc_ops_request_legacy(struct mmc_host *mmc,
 		BUG();
 	}
 
-	if (is_card_present(host)
-		&& host->power_mode == MMC_POWER_OFF
-		&& mrq->cmd->opcode == 7 && mrq->cmd->arg == 0
-		&& host->hw->host_function == MSDC_SD) {
-		ERR_MSG("cmd<%d> arg<0x%x> card<%d> power<%d>, bypass return -ENOMEDIUM",
-			mrq->cmd->opcode, mrq->cmd->arg,
-			is_card_present(host), host->power_mode);
-	} else if (!is_card_present(host) || host->power_mode == MMC_POWER_OFF) {
+	if (!is_card_present(host) || host->power_mode == MMC_POWER_OFF) {
 		ERR_MSG("cmd<%d> arg<0x%x> card<%d> power<%d>",
 			mrq->cmd->opcode, mrq->cmd->arg,
 			is_card_present(host), host->power_mode);
@@ -8905,12 +8884,11 @@ int msdc_of_parse(struct mmc_host *mmc)
 	if (of_find_property(np, "bootable", &len))
 		host->hw->boot = 1;
 
-	/* get cd_gpio and cd_level */
-	if (of_property_read_u32_index(np, "cd-gpios", 1, &cd_gpio) == 0) {
-		if (of_property_read_u8(np, "cd_level", (u8 *)&host->hw->cd_level))
-			pr_err("[msdc%d] cd_level isn't found in device tree\n",
-				host->id);
-	}
+	/*get cd_level*/
+	of_property_read_u8(np, "cd_level", (u8 *)&host->hw->cd_level);
+
+	/*get cd_gpio*/
+	of_property_read_u32_index(np, "cd-gpios", 1, &cd_gpio);
 
 	msdc_get_rigister_settings(host);
 	msdc_get_pinctl_settings(host);
@@ -8928,26 +8906,11 @@ static int msdc_drv_probe(struct platform_device *pdev)
 	void __iomem *base;
 	int ret;
 	struct irq_data l_irq_data;
-	struct pinctrl *pinctrl;
-	struct pinctrl_state *pins_ins;
-#if defined(CONFIG_MTK_KERNEL_POWER_OFF_CHARGING)
-	enum boot_mode_t boot_mode;
-#endif
 
 #ifdef FPGA_PLATFORM
 	u16 l_val;
 #endif
 
-#if defined(CONFIG_MTK_KERNEL_POWER_OFF_CHARGING)
-	if (0 == strcmp(pdev->dev.of_node->name, "msdc1")) {
-		boot_mode = get_boot_mode();
-		if ((boot_mode == KERNEL_POWER_OFF_CHARGING_BOOT)
-			|| (boot_mode == LOW_POWER_OFF_CHARGING_BOOT)) {
-			pr_err("msdc1: boot_mode = %d, bypass probe\n", boot_mode);
-			return 1;
-		}
-	}
-#endif
 	if (0 == strcmp(pdev->dev.of_node->name, "msdc2")) {
 #ifndef CFG_DEV_MSDC2
 		return 1;
@@ -9164,23 +9127,22 @@ static int msdc_drv_probe(struct platform_device *pdev)
 	}
 #endif
 
-	if ((pdev->id == 1) && (host->hw->host_function == MSDC_SD)) {
-		pinctrl = devm_pinctrl_get(&pdev->dev);
-		if (IS_ERR(pinctrl)) {
-			ret = PTR_ERR(pinctrl);
-			dev_err(&pdev->dev, "Cannot find pinctrl!\n");
-			goto release;
-		}
+	if ((pdev->id == 1) && (host->hw->host_function == MSDC_SD)
+		&& (msdc_eint_node == NULL)) {
+		msdc_eint_node = of_find_compatible_node(NULL, NULL,
+			"mediatek,msdc1_ins-eint");
+		if (msdc_eint_node) {
+			pr_debug("find msdc1_ins-eint node!!\n");
 
-		pins_ins = pinctrl_lookup_state(pinctrl, "insert_cfg");
-		if (IS_ERR(pins_ins)) {
-			ret = PTR_ERR(pins_ins);
-			dev_err(&pdev->dev, "Cannot find pinctrl insert_cfg!\n");
-			goto release;
-		}
-
-		pinctrl_select_state(pinctrl, pins_ins);
-		pr_err("msdc1 pinctl select state\n");
+			/* get irq #  */
+			if (!cd_irq)
+				cd_irq = irq_of_parse_and_map(msdc_eint_node, 0);
+			if (!cd_irq)
+				pr_debug("can't irq_of_parse_and_map for card detect eint!!\n");
+			else
+				pr_debug("msdc1 EINT get irq # %d\n", cd_irq);
+		} else
+			pr_debug("can't find msdc1_ins-eint compatible node\n");
 	}
 
 	/* get VMC CAL */
@@ -9334,6 +9296,7 @@ static int msdc_drv_probe(struct platform_device *pdev)
 	host->block_bad_card = 0;
 	host->sd_30_busy = 0;
 	msdc_reset_tmo_tune_counter(host, ALL_TUNE_CNT);
+	msdc_reset_pwr_cycle_counter(host);
 
 	if (is_card_sdio(host) || (host->hw->flags & MSDC_SDIO_IRQ)) {
 		host->saved_para.suspend_flag = 0;
@@ -9375,8 +9338,6 @@ static int msdc_drv_probe(struct platform_device *pdev)
 	/* host->timer.expires = jiffies + HZ; */
 	host->timer.function = msdc_timer_pm;
 	host->timer.data = (unsigned long)host;
-
-	msdc_reset_pwr_cycle_counter(host);
 
 	if ((pdev->id == 1) && (host->hw->host_function == MSDC_SD))
 		msdc_select_clksrc(host, host->hw->clk_src);
