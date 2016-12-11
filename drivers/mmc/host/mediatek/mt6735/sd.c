@@ -7774,10 +7774,11 @@ static irqreturn_t msdc_irq(int irq, void *dev_id)
 #endif
 		stop = data->stop;
 #if (MSDC_DATA1_INT == 1)
-	if ((host->hw->flags & MSDC_SDIO_IRQ) && (intsts & MSDC_INT_XFER_COMPL))
+	if ((host->hw->flags & MSDC_SDIO_IRQ) && (intsts & MSDC_INT_XFER_COMPL)){
 		goto done;
-	else
+	}else
 #endif
+	{
 		if (intsts & MSDC_INT_XFER_COMPL) {
 			if ((stop != NULL) && (host->autocmd & MSDC_AUTOCMD12)) {
 				CMD_MSG("CMD<12> resp<0x%.8x> @ addr<0x%08x> blks<0x%x>",
@@ -7785,6 +7786,7 @@ static irqreturn_t msdc_irq(int irq, void *dev_id)
 			}
 			goto done;
 		}
+	}
 
 		if (intsts & datsts) {
 			/*for sd card: ACMD51/ACMD13/CMD6 return error directly*/
