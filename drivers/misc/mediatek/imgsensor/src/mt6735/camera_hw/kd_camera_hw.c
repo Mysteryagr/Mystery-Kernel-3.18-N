@@ -42,6 +42,8 @@
 #define PK_ERR(a, ...)
 #define PK_XLOG_INFO(fmt, args...)
 #endif
+#define MAIN_SENSOR_NAME	SENSOR_DRVNAME_S5K5E2YA_MIPI_RAW
+#define MAIN_SENSOR_NAME2	SENSOR_DRVNAME_S5K5E2YA_MIPI_RAW
 
 #if !defined(CONFIG_MTK_LEGACY)
 /* GPIO Pin control*/
@@ -245,22 +247,15 @@ int kdCISModulePowerOn(CAMERA_DUAL_CAMERA_SENSOR_ENUM SensorIdx, char *currSenso
 
 	/* power ON */
 	if (On) {
-
-#if 0
-		ISP_MCLK1_EN(1);
-		ISP_MCLK2_EN(1);
-		ISP_MCLK3_EN(1);
-#else
-		if (pinSetIdx == 0)
+		if((0 == strcmp(currSensorName, MAIN_SENSOR_NAME))&&(pinSetIdx != 0))
+			PK_DBG("[PowerON]135 not main\n");
+		else
 			ISP_MCLK1_EN(1);
-		else if (pinSetIdx == 1)
-			ISP_MCLK2_EN(1);
-#endif
 
 		PK_DBG("[PowerON]pinSetIdx:%d, currSensorName: %s\n", pinSetIdx, currSensorName);
 
-		if ((currSensorName && (0 == strcmp(currSensorName, "imx135mipiraw"))) ||
-		    (currSensorName && (0 == strcmp(currSensorName, "imx220mipiraw")))) {
+		if ((currSensorName && (0 == strcmp(currSensorName, MAIN_SENSOR_NAME))) ||
+		    (currSensorName && (0 == strcmp(currSensorName, MAIN_SENSOR_NAME2)))) {
 			/* First Power Pin low and Reset Pin Low */
 			if (GPIO_CAMERA_INVALID != pinSet[pinSetIdx][IDX_PS_CMPDN])
 				mtkcam_gpio_set(pinSetIdx, CAMPDN, pinSet[pinSetIdx][IDX_PS_CMPDN + IDX_PS_OFF]);
@@ -520,15 +515,10 @@ int kdCISModulePowerOn(CAMERA_DUAL_CAMERA_SENSOR_ENUM SensorIdx, char *currSenso
 	} else { /* power OFF */
 
 		PK_DBG("[PowerOFF]pinSetIdx:%d\n", pinSetIdx);
-		if (pinSetIdx == 0)
-			ISP_MCLK1_EN(0);
-		else if (pinSetIdx == 1)
-			ISP_MCLK2_EN(0);
 
-		if ((currSensorName && (0 == strcmp(currSensorName, "imx135mipiraw"))) ||
-		    (currSensorName && (0 == strcmp(currSensorName, "imx220mipiraw"))))
+		if ((currSensorName && (0 == strcmp(currSensorName, MAIN_SENSOR_NAME))) ||
+		    (currSensorName && (0 == strcmp(currSensorName, MAIN_SENSOR_NAME2)))) {
 
-		{
 			/* Set Power Pin low and Reset Pin Low */
 			if (GPIO_CAMERA_INVALID != pinSet[pinSetIdx][IDX_PS_CMPDN])
 				mtkcam_gpio_set(pinSetIdx, CAMPDN, pinSet[pinSetIdx][IDX_PS_CMPDN + IDX_PS_OFF]);
@@ -743,22 +733,15 @@ int kdCISModulePowerOn(CAMERA_DUAL_CAMERA_SENSOR_ENUM SensorIdx, char *currSenso
 
 	/* power ON */
 	if (On) {
-
-#if 0
-		ISP_MCLK1_EN(1);
-		ISP_MCLK2_EN(1);
-		ISP_MCLK3_EN(1);
-#else
-		if (pinSetIdx == 0)
-			ISP_MCLK1_EN(1);
-		else if (pinSetIdx == 1)
-			ISP_MCLK2_EN(1);
-#endif
+		if((0 == strcmp(currSensorName,"imx135mipiraw"))&&(pinSetIdx != 0))
+			PK_DBG("[PowerON]135 not main\n");
+		else
+            ISP_MCLK1_EN(1);
 
 		PK_DBG("[PowerON]pinSetIdx:%d, currSensorName: %s\n", pinSetIdx, currSensorName);
 
-		if ((currSensorName && (0 == strcmp(currSensorName, "imx135mipiraw"))) ||
-		    (currSensorName && (0 == strcmp(currSensorName, "imx220mipiraw")))) {
+		if ((currSensorName && (0 == strcmp(currSensorName, MAIN_SENSOR_NAME))) ||
+		    (currSensorName && (0 == strcmp(currSensorName, MAIN_SENSOR_NAME2)))) {
 			/* First Power Pin low and Reset Pin Low */
 			if (GPIO_CAMERA_INVALID != pinSet[pinSetIdx][IDX_PS_CMPDN]) {
 				if (mt_set_gpio_mode(pinSet[pinSetIdx][IDX_PS_CMPDN],
@@ -1121,13 +1104,13 @@ int kdCISModulePowerOn(CAMERA_DUAL_CAMERA_SENSOR_ENUM SensorIdx, char *currSenso
 	} else { /* power OFF */
 
 		PK_DBG("[PowerOFF]pinSetIdx:%d\n", pinSetIdx);
-		if (pinSetIdx == 0)
-			ISP_MCLK1_EN(0);
-		else if (pinSetIdx == 1)
-			ISP_MCLK2_EN(0);
+		if((0 == strcmp(currSensorName,"imx135mipiraw"))&&(pinSetIdx != 0))
+			PK_DBG("[PowerOFF]135 not main\n");
+		else
+            ISP_MCLK1_EN(0);
 
-		if ((currSensorName && (0 == strcmp(currSensorName, "imx135mipiraw"))) ||
-		    (currSensorName && (0 == strcmp(currSensorName, "imx220mipiraw")))) {
+		if ((currSensorName && (0 == strcmp(currSensorName, MAIN_SENSOR_NAME))) ||
+		    (currSensorName && (0 == strcmp(currSensorName, MAIN_SENSOR_NAME2)))) {
 			/* Set Power Pin low and Reset Pin Low */
 			if (GPIO_CAMERA_INVALID != pinSet[pinSetIdx][IDX_PS_CMPDN]) {
 				if (mt_set_gpio_mode(pinSet[pinSetIdx][IDX_PS_CMPDN],
