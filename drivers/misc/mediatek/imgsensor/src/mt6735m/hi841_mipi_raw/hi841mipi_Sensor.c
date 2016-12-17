@@ -26,8 +26,10 @@
 #include <linux/uaccess.h>
 #include <linux/fs.h>
 #include <asm/atomic.h>
-#include <asm/system.h>
-#include <linux/xlog.h>
+//#include <asm/system.h>
+//#include <linux/xlog.h>
+#include "kd_camera_typedef.h"
+
 
 #include "kd_camera_hw.h"
 #include "kd_imgsensor.h"
@@ -37,7 +39,7 @@
 #include "hi841mipi_Sensor.h"
 
 #define PFX "HI841_camera_sensor"
-#define LOG_INF(format, args...) pr_debug(PFX "[%s] " format, __FUNCTION__, ##args)
+#define LOG_INF(format, args...)    pr_debug(PFX "[%s] " format, __FUNCTION__, ##args)
 
 static DEFINE_SPINLOCK(imgsensor_drv_lock);
 
@@ -184,7 +186,7 @@ static void write_cmos_sensor(kal_uint32 addr, kal_uint32 para)
 	iWriteRegI2C(pu_send_cmd, 3, imgsensor.i2c_write_id);
 }
 
-static void set_dummy()
+static void set_dummy(void)
 {
 
 
@@ -200,7 +202,7 @@ static void set_dummy()
 
 static void set_max_framerate(UINT16 framerate,kal_bool min_framelength_en)
 {
-	kal_int16 dummy_line;
+//	kal_int16 dummy_line;
 	kal_uint32 frame_length = imgsensor.frame_length;
 	//unsigned long flags;
 
@@ -229,10 +231,7 @@ static void set_max_framerate(UINT16 framerate,kal_bool min_framelength_en)
 
 static void write_shutter(kal_uint16 shutter)
 {
-
-	LOG_INF("write_shutter");
 	kal_uint16 realtime_fps = 0;
-	kal_uint32 frame_length = 0;
 	   
 	/* 0x3500, 0x3501, 0x3502 will increase VBLANK to get exposure larger than frame exposure */
 	/* AE doesn't update sensor gain at capture mode, thus extra exposure lines must be updated here. */
@@ -309,8 +308,6 @@ static void write_shutter(kal_uint16 shutter)
 *************************************************************************/
 static void set_shutter(kal_uint16 shutter)
 {
-
-	LOG_INF("set_shutter");
 	unsigned long flags;
 	spin_lock_irqsave(&imgsensor_drv_lock, flags);
 	imgsensor.shutter = shutter;
@@ -345,8 +342,6 @@ static kal_uint16 gain2reg(const kal_uint16 gain)
 *************************************************************************/
 static kal_uint16 set_gain(kal_uint16 gain)
 {
-	LOG_INF("set_gain");
-
 	kal_uint16 reg_gain;
 	kal_uint16 DigitalGain = 0;
 
@@ -406,8 +401,7 @@ static kal_uint16 set_gain(kal_uint16 gain)
 		write_cmos_sensor(0x0104, 0x0);
 
 	}
-	
-return;
+	return gain;
 }	/*	set_gain  */
 static void ihdr_write_shutter_gain(kal_uint16 le, kal_uint16 se, kal_uint16 gain)
 {
@@ -444,7 +438,7 @@ static void ihdr_write_shutter_gain(kal_uint16 le, kal_uint16 se, kal_uint16 gai
 }
 
 
-
+#if 0 //dengwenhao  L to M
 
 static void set_mirror_flip(kal_uint8 image_mirror)
 {
@@ -504,6 +498,7 @@ static void night_mode(kal_bool enable)
 {
 /*No Need to implement this function*/ 
 }	/*	night_mode	*/
+#endif
 static void sensor_init(void)
 {
 /////// Sensor Information  /////////////////////////// 
@@ -1041,7 +1036,7 @@ write_cmos_sensor(0x7407, 0x00);
 
 write_cmos_sensor(0x0100, 0x01);  // sleep on        
 }
-static void hs_video_setting()
+static void hs_video_setting(void)
 {
     LOG_INF("E\n");
 //Preview Mode VGA Setting                                                       
@@ -1100,7 +1095,7 @@ write_cmos_sensor(0x7407, 0x04);
 write_cmos_sensor(0x0100, 0x01);   // sleep on                
 }
 
-static void slim_video_setting()
+static void slim_video_setting(void)
 {
     LOG_INF("E\n");
     //@@video_720p_30fps_800Mbps
@@ -1162,8 +1157,6 @@ write_cmos_sensor(0x0100, 0x01);  // sleep on
 *************************************************************************/
 static kal_uint32 get_imgsensor_id(UINT32 *sensor_id) 
 {
-
-LOG_INF("[get_imgsensor_id] ");
 	kal_uint8 i = 0;
 	kal_uint8 retry = 2;
 	//sensor have two i2c address 0x6c 0x6d & 0x21 0x20, we should detect the module used i2c address
@@ -1180,10 +1173,10 @@ LOG_INF("[get_imgsensor_id] ");
 			do {
 				*sensor_id = ((read_cmos_sensor(0x0000) << 8) | read_cmos_sensor(0x0001));
 				if (*sensor_id == imgsensor_info.sensor_id) {				
-					LOG_INF("i2c write id  : 0x%x, sensor id: 0x%x\n", imgsensor.i2c_write_id,*sensor_id);	  
+				LOG_INF("i2c write id: 0x%x, sensor id: 0x%x\n", imgsensor.i2c_write_id,*sensor_id);	  
 					return ERROR_NONE;
 				}	
-				LOG_INF("get_imgsensor_id Read sensor id fail, id: 0x%x\n", imgsensor.i2c_write_id,*sensor_id);
+			LOG_INF("Read sensor id fail, id: 0x%x sensor_id = 0x%x\n", imgsensor.i2c_write_id,*sensor_id);
 				retry--;
 			} while(retry > 0);
 			i++;
@@ -1216,35 +1209,28 @@ LOG_INF("[get_imgsensor_id] ");
 *************************************************************************/
 static kal_uint32 open(void)
 {
-	LOG_INF("[open] ");
 	//const kal_uint8 i2c_addr[] = {IMGSENSOR_WRITE_ID_1, IMGSENSOR_WRITE_ID_2};
 	kal_uint8 i = 0;
 	kal_uint8 retry = 2;
 	kal_uint16 sensor_id = 0; 
-	LOG_INF("[open]: PLATFORM:MT6571,MIPI 2LANE\n");
-	LOG_INF("preview 1280*960@30fps,864Mbps/lane; video 1280*960@30fps,864Mbps/lane; capture 5M@30fps,864Mbps/lane\n");
 
 	write_cmos_sensor(0x8408,0x0a);
 	write_cmos_sensor(0x0103,0x01) ;
 	write_cmos_sensor(0x0103,0x00);
 	write_cmos_sensor(0x8400 ,0x03 );
-	LOG_INF("WR\n");
-	
-	
 	//sensor have two i2c address 0x6c 0x6d & 0x21 0x20, we should detect the module used i2c address
 	while (imgsensor_info.i2c_addr_table[i] != 0xff) {
 		
 		spin_lock(&imgsensor_drv_lock);
 		imgsensor.i2c_write_id = imgsensor_info.i2c_addr_table[i];
 		spin_unlock(&imgsensor_drv_lock);
-		LOG_INF("SP\n");
 		do {
 			sensor_id = ((read_cmos_sensor(0x0000) << 8) | read_cmos_sensor(0x0001));
 			if (sensor_id == imgsensor_info.sensor_id) {				
 				LOG_INF("i2c write id: 0x%x, sensor id: 0x%x\n", imgsensor.i2c_write_id,sensor_id);	  
 				break;
 			}	
-			LOG_INF("open:Read sensor id fail open w, id: 0x%x\n", imgsensor.i2c_write_id,sensor_id);
+			LOG_INF("Read sensor id fail, write id: 0x%x, id: 0x%x\n", imgsensor.i2c_write_id,sensor_id);
 			retry--;
 		} while(retry > 0);
 		i++;
@@ -1257,7 +1243,6 @@ static kal_uint32 open(void)
 	
 	/* initail sequence write in  */
 	sensor_init();
-	LOG_INF("A\n");
 
 	spin_lock(&imgsensor_drv_lock);
 
@@ -1276,7 +1261,6 @@ static kal_uint32 open(void)
   
 	imgsensor.current_fps = imgsensor_info.pre.max_framerate;
 	spin_unlock(&imgsensor_drv_lock);
-       LOG_INF("B\n");
 	return ERROR_NONE;
 }	/*	open  */
 
@@ -1780,7 +1764,7 @@ static kal_uint32 feature_control(MSDK_SENSOR_FEATURE_ENUM feature_id,
     UINT32 *feature_return_para_32=(UINT32 *) feature_para;
     UINT32 *feature_data_32=(UINT32 *) feature_para;
     unsigned long long *feature_data=(unsigned long long *) feature_para;
-    unsigned long long *feature_return_para=(unsigned long long *) feature_para;
+    //unsigned long long *feature_return_para=(unsigned long long *) feature_para;
 
     SENSOR_WINSIZE_INFO_STRUCT *wininfo;
     MSDK_SENSOR_REG_INFO_STRUCT *sensor_reg_data=(MSDK_SENSOR_REG_INFO_STRUCT *) feature_para;
@@ -1800,7 +1784,7 @@ static kal_uint32 feature_control(MSDK_SENSOR_FEATURE_ENUM feature_id,
             set_shutter(*feature_data);
             break;
         case SENSOR_FEATURE_SET_NIGHTMODE:
-            night_mode((BOOL) *feature_data);
+//            night_mode((BOOL) *feature_data);
             break;
         case SENSOR_FEATURE_SET_GAIN:
             set_gain((UINT16) *feature_data);
