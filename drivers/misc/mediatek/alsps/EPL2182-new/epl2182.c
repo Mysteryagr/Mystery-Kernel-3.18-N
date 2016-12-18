@@ -25,6 +25,7 @@
 #include <linux/kobject.h>
 #include <linux/platform_device.h>
 #include <linux/atomic.h>
+//#include "flash_on.h"
 
 #include <linux/io.h>
 #include "epl2182.h"
@@ -788,7 +789,8 @@ static void epl2182_eint_work(struct work_struct *work)
 	int err;
 	uint8_t read_data[2];
 	int flag;
-
+//	pass some time on boot only to logo sahow
+//flash_on(1);
 	if (epld->enable_pflag == 0)
 		goto exit;
 
@@ -821,7 +823,7 @@ exit:
 	if (test_bit(CMC_BIT_ALS, &epld->enable)) {
 		/* APS_DBG("als enable eint mask ps!\n"); */
 #ifndef FPGA_EARLY_PORTING
-		disable_irq(epl2182_obj->irq);
+	disable_irq(epl2182_obj->irq);
 #endif				/* #ifndef FPGA_EARLY_PORTING */
 	} else {
 		/* APS_DBG("als disable eint unmask ps!\n"); */
@@ -842,7 +844,6 @@ int epl2182_setup_eint(struct i2c_client *client)
 
 	err = SCP_sensorHub_rsp_registration(ID_PROXIMITY, alsps_irq_handler);
 
-
 #else				/* #ifdef CUSTOM_KERNEL_SENSORHUB */
 	struct epl2182_priv *obj = i2c_get_clientdata(client);
 	int ret;
@@ -851,7 +852,6 @@ int epl2182_setup_eint(struct i2c_client *client)
 	struct pinctrl_state *pins_default;
 	struct pinctrl_state *pins_cfg;
 	struct platform_device *alsps_pdev = get_alsps_platformdev();
-
 
 	APS_LOG("epl2182_setup_eint\n");
 
@@ -931,13 +931,15 @@ static int epl2182_init_client(struct i2c_client *client)
 
 
 	APS_FUN();
-
+printk("SnowCat: epl2182_setup\n");
 	if (obj->hw->polling_mode_ps == 0) {
 #ifndef FPGA_EARLY_PORTING
-		disable_irq(epl2182_obj->irq);
+	disable_irq(epl2182_obj->irq);
 #endif				/* #ifndef FPGA_EARLY_PORTING */
 		err = epl2182_setup_eint(client);
 		if (err) {
+// not pass
+//flash_on(1);
 			APS_ERR("setup eint: %d\n", err);
 			return err;
 		}

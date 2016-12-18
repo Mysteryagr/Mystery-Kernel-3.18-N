@@ -36,7 +36,6 @@ static int tpd_probe(struct i2c_client *client, const struct i2c_device_id *id)
 	i2c_client = client;
 	if (tpd_power_on(client) == 0)
 		return -1;
-
 	tpd_irq_registration(client);
 	// Extern variable MTK touch driver
     	tpd_load_status = 1;
