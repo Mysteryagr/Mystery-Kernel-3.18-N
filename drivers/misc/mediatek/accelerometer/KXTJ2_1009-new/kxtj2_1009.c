@@ -1825,35 +1825,28 @@ static int kxtj2_1009_release(struct inode *inode, struct file *file)
 #ifdef CONFIG_COMPAT
 static long kxtj2_1009_compat_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
-	long err = 0;
-
-	void __user *arg32 = compat_ptr(arg);
-
 	if (!file->f_op || !file->f_op->unlocked_ioctl)
 		return -ENOTTY;
 
 	switch (cmd) {
+	case COMPAT_GSENSOR_IOCTL_INIT:
+	case COMPAT_GSENSOR_IOCTL_READ_CHIPINFO:
+	case COMPAT_GSENSOR_IOCTL_READ_GAIN:
+	case COMPAT_GSENSOR_IOCTL_READ_RAW_DATA:
 	case COMPAT_GSENSOR_IOCTL_READ_SENSORDATA:
-		if (arg32 == NULL) {
-			err = -EINVAL;
-			break;
+		/* NVRAM will use below ioctl */
+	case COMPAT_GSENSOR_IOCTL_SET_CALI:
+	case COMPAT_GSENSOR_IOCTL_CLR_CALI:
+	case COMPAT_GSENSOR_IOCTL_GET_CALI:{
+			GSE_LOG("compat_ion_ioctl : GSENSOR_IOCTL_XXX command is 0x%x\n", cmd);
+			return file->f_op->unlocked_ioctl(file, cmd,
+							  (unsigned long)compat_ptr(arg));
 		}
-
-		err = file->f_op->unlocked_ioctl(file, GSENSOR_IOCTL_READ_SENSORDATA, arg32);
-		if (err) {
-			GSE_ERR("GSENSOR_IOCTL_READ_SENSORDATA unlocked_ioctl failed.");
-			return err;
+	default:{
+			GSE_ERR("compat_ion_ioctl : No such command!! 0x%x\n", cmd);
+			return -ENOIOCTLCMD;
 		}
-		break;
-
-	default:
-		GSE_ERR("unknown IOCTL: 0x%08x\n", cmd);
-		err = -ENOIOCTLCMD;
-		break;
-
 	}
-
-	return err;
 }
 #endif
 

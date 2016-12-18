@@ -68,7 +68,18 @@ LCM_DRIVER *lcm_driver_list[] = {
 #if defined(HCT_ILI9881_DSI_VDO_HD_CPT)
 	&hct_ili9881_dsi_vdo_hd_cpt,
 #endif
-
+#if defined(HCT_RM68200_DSI_VDO_HD_AUO)
+	&hct_rm68200_dsi_vdo_hd_auo,
+#endif
+#if defined(HCT_NT35521_DSI_VDO_HD_BOE)
+	&hct_nt35521_dsi_vdo_hd_boe,
+#endif
+#if defined(HCT_OTM1284A_DSI_VDO_HD_BOE)
+	&hct_otm1284a_dsi_vdo_hd_boe,
+#endif
+#if defined(NT35521_DSI_6735_H)
+	&nt35521_dsi_6735_H,
+#endif
 
 
 
@@ -502,6 +513,10 @@ LCM_DRIVER *lcm_driver_list[] = {
 
 #if defined(HX8392A_DSI_CMD_3LANE)
 	&hx8392a_dsi_cmd_3lane_lcm_drv,
+#endif
+
+#if defined(HX8392A_DSI_CMD_3LANE_QHD)
+	&hx8392a_dsi_cmd_3lane_qhd_lcm_drv,
 #endif
 
 #if defined(HX8392A_DSI_CMD_WVGA)
