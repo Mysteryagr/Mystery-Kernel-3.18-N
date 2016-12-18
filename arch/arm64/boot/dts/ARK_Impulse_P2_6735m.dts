@@ -614,9 +614,3 @@
 };
 /* AUDIO end */
 
-&dsi_te {
-	interrupt-parent = <&eintc>;
-	interrupts = <147 1>;
-	debounce = <147 0>;
-};
-
