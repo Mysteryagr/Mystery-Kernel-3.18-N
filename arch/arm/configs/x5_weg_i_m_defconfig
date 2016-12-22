@@ -2,6 +2,7 @@
 CONFIG_PHYS_OFFSET=0x80000000
 CONFIG_CROSS_COMPILE="arm-eabi-"
 # CONFIG_LOCALVERSION_AUTO is not set
+CONFIG_LOCALVERSION="-SnowCatPDA-x5-2.133"
 CONFIG_AUDIT=y
 CONFIG_NO_HZ=y
 CONFIG_HIGH_RES_TIMERS=y
@@ -458,7 +459,10 @@ CONFIG_LIBCRC32C=y
 
 CONFIG_LCM_HEIGHT="1280"
 CONFIG_LCM_WIDTH="720"
-CONFIG_CUSTOM_KERNEL_IMGSENSOR="s5k5e2ya_mipi_raw gc2355_mipi_raw"
+
+#CONFIG_CUSTOM_KERNEL_IMGSENSOR="s5k5e2ya_mipi_raw gc2355_mipi_raw"
+CONFIG_CUSTOM_KERNEL_IMGSENSOR="s5k5e2ya_mipi_raw s5k4e2gx_mipi_raw  hi551_mipi_raw ov9760_mipi_raw gc2355_mipi_raw hi841_mipi_raw"
+
 CONFIG_CUSTOM_KERNEL_LCM="hct_otm1285a_dsi_vdo_hd_boe hct_ili9881_dsi_vdo_hd_cpt hct_hx8394f_dsi_vdo_hd_cmi hct_otm1282_dsi_vdo_hd_auo hct_rm68200_dsi_vdo_hd_cpt hct_nt35521s_dsi_vdo_hd_boe_50_xld hct_hx8394d_dsi_vdo_hd_cmi"
 CONFIG_MTK_KXTJ2_1009_NEW=y
 #CONFIG_MTK_MXC400X_NEW=y

@@ -463,8 +463,8 @@ int kdCISModulePowerOn(CAMERA_DUAL_CAMERA_SENSOR_ENUM SensorIdx, char *currSenso
 
 			mdelay(20);
 		}
-        else if (currSensorName &&
-		 ((0 == strcmp(SENSOR_DRVNAME_OV8856_MIPI_RAW, currSensorName)) || \
+        else if (currSensorName
+			   && ((0 == strcmp(SENSOR_DRVNAME_OV8856_MIPI_RAW, currSensorName)) || \
                   (0 == strcmp(SENSOR_DRVNAME_S5K5E2YA_MIPI_RAW, currSensorName)) || \
                   (0 == strcmp(SENSOR_DRVNAME_ST55A_MIPI_RAW, currSensorName)) || \
                   (0 == strcmp(SENSOR_DRVNAME_HI553_MIPI_RAW, currSensorName)) || \

@@ -1701,6 +1701,7 @@ static inline int adopt_CAMERA_HW_CheckIsAlive(void)
 					psensorResolution[1] = &sensorResolution[1];
 					// don't care of the result
 					g_pSensorFunc->SensorGetResolution(psensorResolution);
+					curr_sensor_id = 0;
 					if(g_invokeSocketIdx[i] == DUAL_CAMERA_MAIN_SENSOR)
 						curr_sensor_id = 0;
 					else if(g_invokeSocketIdx[i] == DUAL_CAMERA_SUB_SENSOR)
