@@ -1,4 +1,5 @@
-subdir-ccflags-y += -Werror
+#subdir-ccflags-y += -Werror
+subdir-ccflags-y += -Wno-error
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/include/mt-plat/
 ccflags-y += -I$(srctree)/drivers/input/touchscreen/mediatek
 # In case the platform does NOT support this type of sensors
