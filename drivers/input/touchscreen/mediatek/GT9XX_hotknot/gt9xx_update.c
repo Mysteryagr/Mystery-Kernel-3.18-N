@@ -48,7 +48,7 @@
 #include "include/tpd_gt9xx_common.h"
 
 #if ((defined(CONFIG_GTP_AUTO_UPDATE) && defined(CONFIG_GTP_HEADER_FW_UPDATE)) || defined(CONFIG_GTP_COMPATIBLE_MODE))
-#include "gt9xx_firmware.h"
+#include "firmware_default/gt9xx_firmware.h"
 #endif
 
 #define GUP_REG_HW_INFO             0x4220
