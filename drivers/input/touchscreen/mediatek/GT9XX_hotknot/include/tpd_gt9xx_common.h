@@ -54,6 +54,9 @@
 #define TPD_KEYS_DIM    {{60, 850, 50, 30}, {180, 850, 50, 30}, {300, 850, 50, 30}, {420, 850, 50, 30} }
 #define GTP_KEY_MAP_ARRAY         {{60, 850}, {180, 850}, {300, 850},}
 
+#define GTP_MAX_HEIGHT   1280
+#define GTP_MAX_WIDTH 720
+
 #define TOUCH_FILTER 1
 #if TOUCH_FILTER
 #define TPD_FILTER_PARA {1, 195} /* {enable, pixel density} */
