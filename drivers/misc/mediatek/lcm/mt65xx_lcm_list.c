@@ -35,6 +35,9 @@ LCM_DSI_MODE_CON lcm_dsi_mode;
 
 LCM_DRIVER *lcm_driver_list[] = {
 
+#if defined(HX8394D_DSI_VDO_HLT_HSD_HD720)
+	&hx8394d_dsi_vdo_hlt_hsd_hd720_lcm_drv,
+#endif
 #if defined(NT35521_DSI_VDO_YUSHUN_CMI_HD720)
 	&nt35521_dsi_vdo_yushun_cmi_hd720_lcm_drv,
 #endif
