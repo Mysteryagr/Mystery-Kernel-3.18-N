@@ -1,15 +1,21 @@
-#ifndef BUILD_LK
-#include <linux/string.h>
-#include <mach/mt_gpio.h>
+#ifdef BUILD_LK
 #else
-#include <platform/mt_gpio.h>
+#include <linux/string.h>
 #endif
 
 #include "lcm_drv.h"
+
+#ifdef BUILD_LK
+    #include <platform/mt_gpio.h>
+#elif defined(BUILD_UBOOT)
+    #include <asm/arch/mt_gpio.h>
+#else
+        #include <mt-plat/mt_gpio.h>
+#endif
+
 // ---------------------------------------------------------------------------
 //  Local Constants
 // ---------------------------------------------------------------------------
-#include <cust_adc.h>
 #define MIN_VOLTAGE (800)
 #define MAX_VOLTAGE (1200)
 #define LCM_ID (0x8394)
