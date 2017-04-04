@@ -134,7 +134,7 @@ config RGK_GT9XX_HOTKNOT_X510
 	  If unsure, say N.
 
 	  To compile this dirver as a module, choose M here: the
-module will be called.
+	  module will be called.
 
 source "drivers/input/touchscreen/mediatek/GT9XX_hotknot_X510/Kconfig"
 
