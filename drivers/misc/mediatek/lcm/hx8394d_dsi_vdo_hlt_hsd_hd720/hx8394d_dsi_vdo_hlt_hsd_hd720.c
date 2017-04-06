@@ -23,7 +23,7 @@
 #define FRAME_WIDTH  										(720)
 #define FRAME_HEIGHT 										(1280)
 
-#define LCM_DSI_CMD_MODE                                    0
+#define LCM_DSI_CMD_MODE                                    
 
 #define REGFLAG_DELAY             							0xFE
 #define REGFLAG_END_OF_TABLE      							0xFF   // END OF REGISTERS MARKER
@@ -72,6 +72,12 @@ static void lcm_get_params(LCM_PARAMS *params)
     params->type   = LCM_TYPE_DSI;
     params->width  = FRAME_WIDTH;
     params->height = FRAME_HEIGHT;
+
+    #if defined(LCM_DSI_CMD_MODE)
+      params->dsi.mode   = CMD_MODE;
+    #else
+      params->dsi.mode   = SYNC_PULSE_VDO_MODE;
+    #endif
 
     // enable tearing-free
     params->dbi.te_mode 				= LCM_DBI_TE_MODE_VSYNC_ONLY;
