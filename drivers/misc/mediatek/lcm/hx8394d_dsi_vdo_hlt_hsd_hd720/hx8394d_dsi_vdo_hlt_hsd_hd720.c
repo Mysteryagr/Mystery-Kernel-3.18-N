@@ -25,8 +25,8 @@
 
 #define LCM_DSI_CMD_MODE                                    
 
-#define GPIO_LCD_BIAS_ENP_PIN                                     GPIO19
-#define GPIO_LCD_BIAS_ENN_PIN                                     GPIO21
+#define GPIO_LCD_BIAS_ENP_PIN                                     
+#define GPIO_LCD_BIAS_ENN_PIN                                     
 
 #define REGFLAG_DELAY             							0xFE
 #define REGFLAG_END_OF_TABLE      							0xFF   // END OF REGISTERS MARKER
@@ -299,7 +299,7 @@ static void lcm_suspend(void)
 	SET_RESET_PIN(1);
 	MDELAY(20); 
 	mt_set_gpio_out(GPIO_LCD_BIAS_ENP_PIN, GPIO_OUT_ZERO);
-    mt_set_gpio_out(GPIO_LCD_BIAS_ENN_PIN, GPIO_OUT_ZERO);  
+	mt_set_gpio_out(GPIO_LCD_BIAS_ENN_PIN, GPIO_OUT_ZERO);  
 }
 
 
