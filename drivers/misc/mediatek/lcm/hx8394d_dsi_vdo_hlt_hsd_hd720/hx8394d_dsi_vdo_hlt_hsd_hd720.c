@@ -25,8 +25,8 @@
 
 #define LCM_DSI_CMD_MODE                                    
 
-#define GPIO_LCD_BIAS_ENP_PIN                                     
-#define GPIO_LCD_BIAS_ENN_PIN                                     
+#define GPIO_LCD_BIAS_ENP_PIN         (GPIO19 | 0x80000000)                                   
+#define GPIO_LCD_BIAS_ENN_PIN         (GPIO21 | 0x80000000)                                  
 
 #define REGFLAG_DELAY             							0xFE
 #define REGFLAG_END_OF_TABLE      							0xFF   // END OF REGISTERS MARKER
