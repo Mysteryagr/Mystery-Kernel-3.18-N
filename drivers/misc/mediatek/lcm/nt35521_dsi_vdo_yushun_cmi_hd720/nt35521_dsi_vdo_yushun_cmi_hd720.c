@@ -60,7 +60,7 @@
 #define REGFLAG_END_OF_TABLE                                  0xFFF   // END OF REGISTERS MARKER
 
 #define LCM_ID                                         (0x55)
-#define LCM_DSI_CMD_MODE                                    0
+#define LCM_DSI_CMD_MODE                                    
 
 #define FALSE 0
 #define TRUE 1
@@ -118,8 +118,12 @@ static void lcm_get_params(LCM_PARAMS *params)
 		params->dbi.te_mode 				= LCM_DBI_TE_MODE_DISABLED;
 		//params->dbi.te_edge_polarity		= LCM_POLARITY_RISING;
 
-		params->dsi.mode   = SYNC_PULSE_VDO_MODE; //SYNC_PULSE_VDO_MODE;//BURST_VDO_MODE;
-
+		//params->dsi.mode   = SYNC_PULSE_VDO_MODE; //SYNC_PULSE_VDO_MODE;//BURST_VDO_MODE;
+		#if defined(LCM_DSI_CMD_MODE)
+		  params->dsi.mode   = CMD_MODE;
+		#else
+		  params->dsi.mode   = SYNC_PULSE_VDO_MODE;
+		#endif
 		// DSI
 		/* Command mode setting */
 		//1 Three lane or Four lane
