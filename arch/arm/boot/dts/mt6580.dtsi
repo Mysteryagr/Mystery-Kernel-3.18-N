@@ -1295,7 +1295,9 @@
 			compatible = "mediatek,IMGSYS_CONFIG";
 			reg = <0x15000000 0x1000>;
 		};
-
+		kd_camera_flashlight:kd_camera_flashlight@0 {
+			compatible = "mediatek,kd_camera_flashlight";
+		};
 		hwmsensor@0 {
 			compatible = "mediatek,hwmsensor";
 		};
